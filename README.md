@@ -1,46 +1,97 @@
 # KNN Paralelo con MPI
 
-Este proyecto implementa una versión paralela del algoritmo K-Nearest Neighbors (KNN) utilizando MPI (Message Passing Interface) con la biblioteca `mpi4py` en Python. El objetivo es distribuir el cálculo de las predicciones de KNN entre múltiples procesos para acelerar el rendimiento en comparación con una implementación secuencial.
+Este proyecto implementa una versión **paralela** del algoritmo **K-Nearest Neighbors (KNN)** utilizando **MPI (Message Passing Interface)** con la biblioteca [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/). El objetivo es **distribuir el cálculo de las distancias** y la predicción de clases entre múltiples procesos para mejorar el rendimiento en comparación con una implementación secuencial.
 
-## Requisitos
+---
 
-Asegúrate de tener instalados los siguientes componentes:
+## 📂 Descripción General
 
-1.  **Python 3**: (https://www.python.org/)
-2.  **Una implementación de MPI**:
-    *   MPI for Python (https://mpi4py.readthedocs.io/en/stable/index.html)
-3.  **Bibliotecas de Python**:
-    *   `mpi4py`
-    *   `numpy`
-    *   `scikit-learn`
-    *   `matplotlib`
+El script `knnParalelo.py` permite:
+- Cargar datasets **Digits** o **MNIST**.
+- Dividir el dataset entre procesos MPI.
+- Calcular distancias Euclidianas de forma distribuida.
+- Combinar resultados en el proceso maestro para predecir usando votación mayoritaria.
+- Medir precisión, tiempos de cómputo y métricas de rendimiento (**FLOPs**, **GFLOPS**).
 
-Puedes instalar las bibliotecas de Python usando pip (preferiblemente dentro de un entorno virtual):
+---
+
+## ⚙️ Requisitos
+
+Asegúrate de tener instalados:
+
+- **Python 3**  
+  👉 [Descargar](https://www.python.org/)
+
+- **Implementación de MPI**  
+  Ejemplo: [Open MPI](https://www.open-mpi.org/) o [MPICH](https://www.mpich.org/)
+
+- **Bibliotecas de Python**:
+  - `mpi4py`
+  - `numpy`
+  - `scikit-learn`
+  - `matplotlib` (opcional, si deseas graficar resultados)
+
+Instala las dependencias con `pip`:
 
 ```bash
-python -m pip install mpi4py
+pip install mpi4py numpy scikit-learn matplotlib
 ```
+
+---
+
+## ▶️ Cómo Ejecutar el Script
+
+Ejecuta el archivo `knnParalelo.py` usando `mpiexec` o `mpirun`:
 
 ```bash
-pip install numpy scikit-learn matplotlib
+mpiexec -n <numero_de_procesos> python knnParalelo.py [dataset] [fracción]
 ```
 
-## Cómo Ejecutar el Código en Paralelo
+**Argumentos opcionales:**
+- `dataset` → `digits` o `mnist` (por defecto: `digits`)
+- `fracción` → número entre 0.0 y 1.0 para definir qué porcentaje del dataset usar. Ejemplo: `0.1` para usar 10 % del dataset.
 
-El script principal para la ejecución paralela es `knnParalelo.py`. Para ejecutarlo, utilizarás el comando `mpiexec` (o `mpirun`, dependiendo de tu implementación de MPI y configuración).
+---
 
-**Comando General:**
+### 📌 Ejemplos
 
-```bash
-mpiexec -n <numero_de_procesos> python knnParalelo.py
-```
-
-**Donde:** 
-
-- `<numero_de_procesos>` es el número de procesos que deseas utilizar para la ejecución paralela. Por ejemplo, si quieres usar 4 procesos, el comando sería:
-
-**Ejemplo:**
-
+**Ejecutar usando 4 procesos con el dataset Digits (100 %):**
 ```bash
 mpiexec -n 4 python knnParalelo.py
 ```
+
+**Ejecutar usando 8 procesos con MNIST y solo el 10 % de los datos:**
+```bash
+mpiexec -n 8 python knnParalelo.py mnist 0.1
+```
+
+---
+
+## 🔬 Detalles Técnicos
+
+- Cada proceso recibe una **partición** de los datos de entrenamiento.
+- Cada punto de prueba se evalúa calculando la **distancia Euclidiana** a todos los puntos de entrenamiento de su partición.
+- Los `k` vecinos más cercanos se envían al **proceso maestro**, que combina resultados, selecciona los `k` vecinos más cercanos globales y decide la clase final por **votación mayoritaria**.
+- El script mide:
+  - Exactitud (**accuracy**)
+  - Tiempo total, de cómputo y de comunicación.
+  - **FLOPs** y **GFLOPS/segundo** estimados.
+
+---
+
+## 📑 Archivos Clave
+
+- `knnParalelo.py` — Script principal para correr el algoritmo paralelo.
+
+---
+
+## 📖 Referencias
+
+- [`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)
+- [Scikit-learn](https://scikit-learn.org/stable/)
+
+---
+
+## 🏷️ Licencia
+
+Este proyecto es de uso académico. Modifícalo y experiméntalo libremente para entender y mejorar algoritmos paralelos.
